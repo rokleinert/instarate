@@ -81,15 +81,8 @@ body{
 .card-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:14px;}
 
 /* CONTACT CARD */
-.contact-top{display:flex;gap:14px;align-items:center;padding:18px 16px 14px;}
-.avatar{
-  width:72px;height:72px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;
-  font-size:24px;font-weight:700;color:#fff;
-  flex-shrink:0;border:2px solid var(--border);
-}
-.contact-name{font-size:17px;font-weight:700;margin-bottom:2px;}
-.contact-user{font-size:13px;color:var(--accent);margin-bottom:8px;}
+.contact-top{display:flex;align-items:center;justify-content:space-between;padding:18px 16px 14px;}
+.contact-name{font-size:17px;font-weight:700;}
 .ig-link{
   display:inline-flex;align-items:center;gap:4px;
   font-size:12px;color:var(--text2);
@@ -99,10 +92,9 @@ body{
 }
 .ig-link:hover{color:var(--accent);border-color:var(--accent);}
 
-.meta-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border);}
-.meta-item{padding:10px 16px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
-.meta-item:nth-child(2n){border-right:none;}
-.meta-item:nth-last-child(-n+2){border-bottom:none;}
+.meta-grid{display:grid;grid-template-columns:1fr 1fr 1fr;border-top:1px solid var(--border);}
+.meta-item{padding:10px 16px;border-right:1px solid var(--border);}
+.meta-item:nth-child(3n){border-right:none;}
 .meta-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
 .meta-val{font-size:13px;font-weight:500;}
 .meta-val.pos{color:var(--green);}
@@ -263,20 +255,13 @@ body{
         <!-- Contact card -->
         <div class="card">
           <div class="contact-top">
-            <div class="avatar" id="cAvatar"></div>
-            <div>
-              <div class="contact-name" id="cName">—</div>
-              <div class="contact-user" id="cUser">@—</div>
-              <button class="ig-link" onclick="openIG()">↗ Ver no Instagram</button>
-            </div>
+            <div class="contact-name" id="cName">—</div>
+            <button class="ig-link" onclick="openIG()">↗ Ver no Instagram</button>
           </div>
           <div class="meta-grid">
             <div class="meta-item"><div class="meta-label">Segue de volta</div><div class="meta-val" id="mSegue">—</div></div>
             <div class="meta-item"><div class="meta-label">Melhores amigos</div><div class="meta-val" id="mMelh">—</div></div>
             <div class="meta-item"><div class="meta-label">Mensagens</div><div class="meta-val" id="mMsg">—</div></div>
-            <div class="meta-item"><div class="meta-label">Última interação</div><div class="meta-val" id="mUlt">—</div></div>
-            <div class="meta-item"><div class="meta-label">Listas</div><div class="meta-val" id="mListas">—</div></div>
-            <div class="meta-item"><div class="meta-label">Prob. SP</div><div class="meta-val" id="mSP">—</div></div>
           </div>
         </div>
 
@@ -308,13 +293,8 @@ body{
         <!-- Scores + Notes -->
         <div class="card card-inner">
           <div class="card-label">Scores</div>
-          <div class="score-row"><span class="score-label">Romântico</span><div class="score-track"><div class="score-fill" id="sbRom" style="width:0%"></div></div><span class="score-num" id="snRom">—</span></div>
-          <div class="score-row"><span class="score-label">Amizade</span><div class="score-track"><div class="score-fill" id="sbAmiz" style="width:0%"></div></div><span class="score-num" id="snAmiz">—</span></div>
-          <div class="score-row"><span class="score-label">Sexual</span><div class="score-track"><div class="score-fill" id="sbSex" style="width:0%"></div></div><span class="score-num" id="snSex">—</span></div>
           <div class="score-row"><span class="score-label">Geral</span><div class="score-track"><div class="score-fill" id="sbGeral" style="width:0%"></div></div><span class="score-num" id="snGeral">—</span></div>
           <div id="catBadge" class="cat-badge cat-n">Pendente</div>
-          <div class="card-label" style="margin-bottom:8px">Notas</div>
-          <textarea class="notes" id="notesArea" placeholder="Observações..."></textarea>
         </div>
 
         <!-- Actions -->
@@ -496,21 +476,13 @@ function refreshPill(key){
 }
 
 function refreshScores(){
-  var n=scores.namoro||0,a=scores.amizade||0,s=scores.sexual||0;
   var all=KEYS.map(function(k){return scores[k]||0;}).filter(function(v){return v>0;});
   var avg=all.length?all.reduce(function(a,b){return a+b;},0)/all.length:0;
-
-  function bar(bid,nid,v){
-    var pct=(v/5)*100;
-    var el=document.getElementById(bid);
-    el.style.width=pct+'%';
-    el.className='score-fill'+(pct>=60?' hi':pct>=30?' mid':' lo');
-    document.getElementById(nid).textContent=v?v.toFixed(2):'—';
-  }
-  bar('sbRom','snRom',n);
-  bar('sbAmiz','snAmiz',a);
-  bar('sbSex','snSex',s);
-  bar('sbGeral','snGeral',avg);
+  var pct=(avg/5)*100;
+  var el=document.getElementById('sbGeral');
+  el.style.width=pct+'%';
+  el.className='score-fill'+(pct>=60?' hi':pct>=30?' mid':' lo');
+  document.getElementById('snGeral').textContent=avg?avg.toFixed(2):'—';
 
   var badge=document.getElementById('catBadge');
   var cat=categoriaFromScores(scores.namoro||0,scores.amizade||0,scores.sexual||0,scores.reciprocidade||0,scores.proximidade||0);
@@ -524,7 +496,7 @@ function autosave(){
   var existing=cls[c.id]||{};
   var newStatus=allFilled?'revisado':(existing.status==='pulado'?'pulado':'pendente');
   var reviewedAt=allFilled?(existing.reviewedAt||new Date().toISOString()):existing.reviewedAt;
-  cls[c.id]=Object.assign({},existing,scores,{notas:document.getElementById('notesArea').value,status:newStatus,reviewedAt:reviewedAt});
+  cls[c.id]=Object.assign({},existing,scores,{status:newStatus,reviewedAt:reviewedAt});
   save(c.id);
 }
 
@@ -538,11 +510,7 @@ function render(){
   var saved=cls[c.id]||{};
   scores={namoro:saved.namoro||0,amizade:saved.amizade||0,sexual:saved.sexual||0,reciprocidade:saved.reciprocidade||0,proximidade:saved.proximidade||0};
 
-  var av=document.getElementById('cAvatar');
-  av.textContent=initials(c.name,c.username);
-  av.style.background=color(c.id);
   document.getElementById('cName').textContent=c.name||c.username;
-  document.getElementById('cUser').textContent='@'+c.username;
 
   var seg=document.getElementById('mSegue');
   seg.textContent=c.segueDeVolta?'Sim':'Não';
@@ -551,13 +519,9 @@ function render(){
   mel.textContent=c.melhoresAmigos?'Sim':'Não';
   mel.className='meta-val '+(c.melhoresAmigos?'pos':'neg');
   document.getElementById('mMsg').textContent=c.mensagens||'—';
-  document.getElementById('mUlt').textContent=c.ultimaInteracao||'—';
-  document.getElementById('mListas').textContent=c.listas||'—';
-  document.getElementById('mSP').textContent=c.probSP!=null?c.probSP+'%':'—';
 
   KEYS.forEach(function(k){refreshPill(k);});
   refreshScores();
-  document.getElementById('notesArea').value=saved.notas||'';
   document.getElementById('prevBtn').disabled=idx===0;
 }
 
@@ -574,7 +538,7 @@ function goPrev(){
 
 function openIG(){
   var c=filtered[idx]; if(!c) return;
-  window.open(c.igUrl||'https://instagram.com/'+c.username,'_blank');
+  window.location.href=c.igUrl||'https://instagram.com/'+c.username;
 }
 
 function showTab(tab){
@@ -838,8 +802,6 @@ function toast(msg){
   t.textContent=msg; t.classList.add('show');
   setTimeout(function(){t.classList.remove('show');},2500);
 }
-
-document.getElementById('notesArea').addEventListener('input',autosave);
 
 // ---- INIT ----
 filtered=filterContacts('todos');
