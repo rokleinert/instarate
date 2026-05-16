@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>InstaRate</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+
+:root{
+  --bg:#0d1117;
+  --surface:#161b22;
+  --surface2:#1c2333;
+  --border:#30363d;
+  --accent:#4a9eff;
+  --text:#e6edf3;
+  --text2:#8b949e;
+  --green:#3fb950;
+  --yellow:#d29922;
+  --red:#f85149;
+  --pink:#f778ba;
+  --purple:#a371f7;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  min-height:100vh;
+  display:flex;
+  justify-content:center;
+}
+
+.app{
+  width:100%;
+  max-width:480px;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+
+/* STICKY TOP */
+.sticky-top{position:sticky;top:0;z-index:50;background:var(--bg);}
+
+/* FILTER ROW */
+.filter-row{
+  display:flex;
+  gap:6px;
+  padding:10px 16px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.filter-row::-webkit-scrollbar{display:none;}
+.fchip{
+  padding:5px 14px;
+  border-radius:20px;
+  border:1px solid var(--border);
+  background:transparent;
+  color:var(--text2);
+  font-size:12px;
+  white-space:nowrap;
+  cursor:pointer;
+  font-family:inherit;
+}
+.fchip.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* TAB CONTENT */
+.tab-content{
+  flex:1;
+  overflow-y:auto;
+  padding:14px 16px 100px;
+}
+
+/* PROGRESS BAR */
+.prog-bar{height:2px;background:var(--surface2);overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--purple));border-radius:1px;transition:width .4s;}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;margin-bottom:12px;overflow:hidden;}
+.card-inner{padding:16px;}
+.card-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text2);margin-bottom:14px;}
+
+/* CONTACT CARD */
+.contact-top{display:flex;gap:14px;align-items:center;padding:18px 16px 14px;}
+.avatar{
+  width:72px;height:72px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:700;color:#fff;
+  flex-shrink:0;border:2px solid var(--border);
+}
+.contact-name{font-size:17px;font-weight:700;margin-bottom:2px;}
+.contact-user{font-size:13px;color:var(--accent);margin-bottom:8px;}
+.ig-link{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:12px;color:var(--text2);
+  background:var(--surface2);border:1px solid var(--border);
+  padding:4px 10px;border-radius:20px;
+  cursor:pointer;font-family:inherit;
+}
+.ig-link:hover{color:var(--accent);border-color:var(--accent);}
+
+.meta-grid{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--border);}
+.meta-item{padding:10px 16px;border-right:1px solid var(--border);border-bottom:1px solid var(--border);}
+.meta-item:nth-child(2n){border-right:none;}
+.meta-item:nth-last-child(-n+2){border-bottom:none;}
+.meta-label{font-size:10px;color:var(--text2);text-transform:uppercase;letter-spacing:.04em;margin-bottom:3px;}
+.meta-val{font-size:13px;font-weight:500;}
+.meta-val.pos{color:var(--green);}
+.meta-val.neg{color:var(--text2);}
+
+/* CRITERIA */
+.crit{margin-bottom:8px;}
+.crit:last-child{margin-bottom:0;}
+.crit-header{margin-bottom:5px;font-size:13px;font-weight:500;}
+.pills{display:flex;gap:5px;}
+.pill{
+  flex:1;height:32px;border-radius:8px;
+  border:1px solid var(--border);background:var(--surface2);
+  color:var(--text2);font-size:13px;font-weight:600;
+  cursor:pointer;font-family:inherit;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .15s,border-color .15s,color .15s;
+}
+.pill:hover{border-color:var(--accent);color:var(--accent);}
+.pill.active{background:var(--accent);border-color:var(--accent);color:#fff;}
+
+/* SCORES */
+.score-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.score-label{font-size:12px;color:var(--text2);width:70px;flex-shrink:0;}
+.score-track{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;}
+.score-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .35s;}
+.score-fill.hi{background:var(--green);}
+.score-fill.mid{background:var(--yellow);}
+.score-fill.lo{background:var(--red);}
+.score-num{font-size:12px;font-weight:600;width:30px;text-align:right;}
+
+.cat-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:16px;}
+.cat-p{background:rgba(247,120,186,.15);color:var(--pink);}
+.cat-dist{background:rgba(163,113,247,.15);color:var(--purple);}
+.cat-insista{background:rgba(210,153,34,.2);color:var(--yellow);}
+.cat-nemtenta{background:rgba(139,148,158,.12);color:var(--text2);}
+.cat-fb{background:rgba(248,81,73,.15);color:var(--red);}
+.cat-friend{background:rgba(63,185,80,.15);color:var(--green);}
+.cat-paixao{background:rgba(255,80,50,.15);color:#ff5032;}
+.cat-pdist{background:rgba(200,60,120,.15);color:#c83c78;}
+.cat-crushd{background:rgba(120,140,160,.12);color:#7890a0;}
+.cat-qfb{background:rgba(255,150,80,.15);color:#ff9650;}
+.cat-fwb{background:rgba(240,136,62,.15);color:#f0883e;}
+.cat-rfwb{background:rgba(240,136,62,.1);color:#c98a5a;}
+.cat-qsd{background:rgba(100,130,180,.12);color:#8eaacc;}
+.cat-remote{background:rgba(74,158,255,.15);color:var(--accent);}
+.cat-avoid{background:rgba(139,148,158,.2);color:var(--text2);}
+.cat-s{background:rgba(48,54,61,.5);color:var(--text2);}
+.cat-n{background:rgba(48,54,61,.5);color:var(--text2);}
+
+/* NOTES */
+.notes{
+  width:100%;background:var(--surface2);border:1px solid var(--border);
+  border-radius:10px;padding:10px 12px;color:var(--text);
+  font-family:inherit;font-size:13px;resize:none;height:70px;
+}
+.notes:focus{outline:none;border-color:var(--accent);}
+.notes::placeholder{color:var(--text2);}
+
+/* ACTION BUTTONS */
+.action-row{display:flex;gap:8px;margin-top:4px;}
+.btn{
+  flex:1;padding:14px 10px;border-radius:12px;border:none;
+  font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .15s;
+}
+.btn:disabled{opacity:.3;cursor:not-allowed;}
+.btn:not(:disabled):active{opacity:.75;}
+.btn-prev{background:var(--surface2);color:var(--text2);border:1px solid var(--border);}
+.btn-done{background:var(--accent);color:#fff;}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:60px 20px;color:var(--text2);}
+.empty h3{font-size:18px;color:var(--text);margin-bottom:8px;}
+
+/* DASHBOARD */
+.stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.stat-label{font-size:11px;color:var(--text2);margin-bottom:6px;}
+.stat-val{font-size:30px;font-weight:700;}
+.stat-val.blue{color:var(--accent);}
+.stat-val.green{color:var(--green);}
+.stat-val.yellow{color:var(--yellow);}
+.stat-val.pink{color:var(--pink);}
+
+.list-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.list-item:last-child{border-bottom:none;}
+.list-avatar{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+.list-info{flex:1;min-width:0;}
+.list-name{font-size:14px;font-weight:500;}
+.list-sub{font-size:11px;color:var(--text2);margin-top:1px;}
+.list-score{font-size:15px;font-weight:700;color:var(--accent);}
+
+.dash-actions{display:flex;gap:8px;margin-top:12px;}
+.btn-dash{
+  flex:1;padding:13px;background:var(--surface);
+  border:1px solid var(--border);border-radius:12px;
+  color:var(--text2);font-size:13px;font-weight:600;
+  font-family:inherit;cursor:pointer;
+}
+.btn-dash:hover{border-color:var(--accent);color:var(--accent);}
+
+/* TAB BAR */
+.tab-bar{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;
+  background:var(--surface);border-top:1px solid var(--border);
+  display:flex;z-index:100;
+}
+.tab-btn{
+  flex:1;padding:10px 8px 18px;
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  background:none;border:none;cursor:pointer;
+  color:var(--text2);font-size:11px;font-family:inherit;
+}
+.tab-btn.active{color:var(--accent);}
+.tab-icon{font-size:22px;line-height:1;}
+
+/* TOAST */
+.toast{
+  position:fixed;bottom:82px;left:50%;
+  transform:translateX(-50%) translateY(30px);
+  background:var(--surface2);border:1px solid var(--border);
+  color:var(--text);padding:9px 20px;border-radius:20px;
+  font-size:13px;font-weight:500;z-index:999;
+  opacity:0;transition:transform .25s,opacity .25s;
+  white-space:nowrap;pointer-events:none;
+}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+@media(min-width:480px){
+  body{background:#060a10;}
+  .app,.tab-bar{border-left:1px solid var(--border);border-right:1px solid var(--border);}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- CLASSIFY TAB -->
+  <div id="tabClassify">
+    <div class="sticky-top">
+      <div class="filter-row">
+        <button class="fchip active" data-f="todos" onclick="setFilter('todos')">Todos</button>
+        <button class="fchip" data-f="pendentes" onclick="setFilter('pendentes')">Pendentes</button>
+        <button class="fchip" data-f="revisados" onclick="setFilter('revisados')">Revisados</button>
+        <button class="fchip" data-f="pulados" onclick="setFilter('pulados')">Pulados</button>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
+    </div>
+    <div class="tab-content">
+
+      <div id="classifyEmpty" class="empty" style="display:none">
+        <h3>Nenhum contato</h3>
+        <p>Nenhum contato neste filtro.</p>
+      </div>
+
+      <div id="classifyMain">
+        <!-- Contact card -->
+        <div class="card">
+          <div class="contact-top">
+            <div class="avatar" id="cAvatar"></div>
+            <div>
+              <div class="contact-name" id="cName">—</div>
+              <div class="contact-user" id="cUser">@—</div>
+              <button class="ig-link" onclick="openIG()">↗ Ver no Instagram</button>
+            </div>
+          </div>
+          <div class="meta-grid">
+            <div class="meta-item"><div class="meta-label">Segue de volta</div><div class="meta-val" id="mSegue">—</div></div>
+            <div class="meta-item"><div class="meta-label">Melhores amigos</div><div class="meta-val" id="mMelh">—</div></div>
+            <div class="meta-item"><div class="meta-label">Mensagens</div><div class="meta-val" id="mMsg">—</div></div>
+            <div class="meta-item"><div class="meta-label">Última interação</div><div class="meta-val" id="mUlt">—</div></div>
+            <div class="meta-item"><div class="meta-label">Listas</div><div class="meta-val" id="mListas">—</div></div>
+            <div class="meta-item"><div class="meta-label">Prob. SP</div><div class="meta-val" id="mSP">—</div></div>
+          </div>
+        </div>
+
+        <!-- Classification -->
+        <div class="card card-inner">
+          <div class="card-label">Classificação</div>
+          <div class="crit" id="cr-namoro">
+            <div class="crit-header">💕 Potencial namoro</div>
+            <div class="pills" id="pills-namoro"><button class="pill" onclick="setScore('namoro',1)">1</button><button class="pill" onclick="setScore('namoro',2)">2</button><button class="pill" onclick="setScore('namoro',3)">3</button><button class="pill" onclick="setScore('namoro',4)">4</button><button class="pill" onclick="setScore('namoro',5)">5</button></div>
+          </div>
+          <div class="crit" id="cr-amizade">
+            <div class="crit-header">🤝 Potencial amizade</div>
+            <div class="pills" id="pills-amizade"><button class="pill" onclick="setScore('amizade',1)">1</button><button class="pill" onclick="setScore('amizade',2)">2</button><button class="pill" onclick="setScore('amizade',3)">3</button><button class="pill" onclick="setScore('amizade',4)">4</button><button class="pill" onclick="setScore('amizade',5)">5</button></div>
+          </div>
+          <div class="crit" id="cr-sexual">
+            <div class="crit-header">🔥 Interesse sexual</div>
+            <div class="pills" id="pills-sexual"><button class="pill" onclick="setScore('sexual',1)">1</button><button class="pill" onclick="setScore('sexual',2)">2</button><button class="pill" onclick="setScore('sexual',3)">3</button><button class="pill" onclick="setScore('sexual',4)">4</button><button class="pill" onclick="setScore('sexual',5)">5</button></div>
+          </div>
+          <div class="crit" id="cr-reciprocidade">
+            <div class="crit-header">🔄 Reciprocidade</div>
+            <div class="pills" id="pills-reciprocidade"><button class="pill" onclick="setScore('reciprocidade',1)">1</button><button class="pill" onclick="setScore('reciprocidade',2)">2</button><button class="pill" onclick="setScore('reciprocidade',3)">3</button><button class="pill" onclick="setScore('reciprocidade',4)">4</button><button class="pill" onclick="setScore('reciprocidade',5)">5</button></div>
+          </div>
+          <div class="crit" id="cr-proximidade">
+            <div class="crit-header">📍 Proximidade</div>
+            <div class="pills" id="pills-proximidade"><button class="pill" onclick="setScore('proximidade',1)">1</button><button class="pill" onclick="setScore('proximidade',2)">2</button><button class="pill" onclick="setScore('proximidade',3)">3</button><button class="pill" onclick="setScore('proximidade',4)">4</button><button class="pill" onclick="setScore('proximidade',5)">5</button></div>
+          </div>
+        </div>
+
+        <!-- Scores + Notes -->
+        <div class="card card-inner">
+          <div class="card-label">Scores</div>
+          <div class="score-row"><span class="score-label">Romântico</span><div class="score-track"><div class="score-fill" id="sbRom" style="width:0%"></div></div><span class="score-num" id="snRom">—</span></div>
+          <div class="score-row"><span class="score-label">Amizade</span><div class="score-track"><div class="score-fill" id="sbAmiz" style="width:0%"></div></div><span class="score-num" id="snAmiz">—</span></div>
+          <div class="score-row"><span class="score-label">Sexual</span><div class="score-track"><div class="score-fill" id="sbSex" style="width:0%"></div></div><span class="score-num" id="snSex">—</span></div>
+          <div class="score-row"><span class="score-label">Geral</span><div class="score-track"><div class="score-fill" id="sbGeral" style="width:0%"></div></div><span class="score-num" id="snGeral">—</span></div>
+          <div id="catBadge" class="cat-badge cat-n">Pendente</div>
+          <div class="card-label" style="margin-bottom:8px">Notas</div>
+          <textarea class="notes" id="notesArea" placeholder="Observações..."></textarea>
+        </div>
+
+        <!-- Actions -->
+        <div class="action-row">
+          <button class="btn btn-prev" id="prevBtn" onclick="goPrev()" disabled>← Anterior</button>
+          <button class="btn btn-done" onclick="goNext()">Próximo →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD TAB -->
+  <div id="tabDashboard" style="display:none">
+    <div class="sticky-top">
+      <div class="filter-row" id="dashFilterRow"></div>
+    </div>
+    <div class="tab-content">
+      <div class="stats-grid" id="dgrid"></div>
+      <div class="card card-inner">
+        <div id="drows"><p style="color:var(--text2);font-size:13px">Nenhum contato ainda.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tabDados" style="display:none">
+    <div class="tab-content">
+      <div class="card card-inner">
+        <div class="card-label" style="margin-bottom:10px">Google Sheets</div>
+        <textarea id="sheetsUrlInput" class="notes" style="height:60px;font-size:11px;word-break:break-all" placeholder="URL do Apps Script..."></textarea>
+        <button class="btn btn-done" style="margin-top:8px;width:100%;padding:10px" onclick="saveSheetsUrl()">Salvar URL</button>
+        <button class="btn btn-prev" style="margin-top:8px;width:100%;padding:10px;border:none" onclick="loadFromSheets()">↻ Sincronizar com Sheets</button>
+      </div>
+      <div class="dash-actions">
+        <button class="btn-dash" onclick="triggerUpload()">↑ Importar CSV</button>
+        <button class="btn-dash" onclick="doExport()">↓ Exportar CSV</button>
+      </div>
+      <input type="file" id="fileInput" accept=".json,.csv" style="display:none" onchange="handleUpload(event)">
+    </div>
+  </div>
+
+  <!-- TAB BAR -->
+  <nav class="tab-bar">
+    <button class="tab-btn active" id="tab-classify" onclick="showTab('classify')">
+      <span class="tab-icon">⭐</span>Classificar
+    </button>
+    <button class="tab-btn" id="tab-dashboard" onclick="showTab('dashboard')">
+      <span class="tab-icon">📊</span>Dashboard
+    </button>
+    <button class="tab-btn" id="tab-dados" onclick="showTab('dados')">
+      <span class="tab-icon">📁</span>Dados
+    </button>
+  </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const COLORS=['#4a9eff','#a371f7','#3fb950','#f778ba','#d29922','#f85149','#58a6ff','#79c0ff','#56d364','#ffa657'];
+const KEYS=['namoro','amizade','sexual','reciprocidade','proximidade'];
+
+const SAMPLE=[
+  {id:1,username:"michelrenard",name:"Michel Renard",igUrl:"https://www.instagram.com/michelrenard",segueDeVolta:true,melhoresAmigos:true,listas:"My fav gays",mensagens:120,ultimaInteracao:"2026-04-20",probSP:95},
+  {id:2,username:"brunoferreira_sp",name:"Bruno Ferreira",igUrl:"",segueDeVolta:true,melhoresAmigos:false,listas:"",mensagens:45,ultimaInteracao:"2026-03-15",probSP:88},
+  {id:3,username:"gabriellucas",name:"Gabriel Lucas",igUrl:"",segueDeVolta:false,melhoresAmigos:false,listas:"",mensagens:3,ultimaInteracao:"2025-12-10",probSP:40},
+  {id:4,username:"pedrocosta_oficial",name:"Pedro Costa",igUrl:"",segueDeVolta:true,melhoresAmigos:true,listas:"Amigos próximos",mensagens:230,ultimaInteracao:"2026-05-01",probSP:92},
+  {id:5,username:"thiagom_rj",name:"Thiago Moraes",igUrl:"",segueDeVolta:true,melhoresAmigos:false,listas:"",mensagens:18,ultimaInteracao:"2026-01-22",probSP:15},
+];
+
+var _mem={};
+var store={
+  get:function(k,fb){try{var v=localStorage.getItem(k);return v?JSON.parse(v):fb;}catch(e){return _mem[k]!==undefined?_mem[k]:fb;}},
+  set:function(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){_mem[k]=v;}}
+};
+
+var contacts=store.get('igc_c',null)||SAMPLE;
+var cls=store.get('igc_cl',{});
+var curFilter='todos';
+var filtered=[];
+var idx=0;
+var scores={namoro:0,amizade:0,sexual:0,reciprocidade:0,proximidade:0};
+var fileHandle=null;
+var sheetsUrl=store.get('igc_sheetsUrl','https://script.google.com/macros/s/AKfycbwXleG5r_m-4rt-QUcBFmCuxvGOyAE_JcK-DMD0eeghBLxp1TsQxJMD4ysIJuVI-u0j/exec');
+
+function save(contactId){
+  store.set('igc_c',contacts);
+  store.set('igc_cl',cls);
+  saveToFile();
+  if(contactId!=null) saveToSheets(contactId);
+}
+
+function initials(name,username){
+  var n=(name||'').trim();
+  if(n) return n.split(' ').slice(0,2).map(function(w){return w[0];}).join('').toUpperCase();
+  return (username||'??').slice(0,2).toUpperCase();
+}
+function color(id){return COLORS[id%COLORS.length];}
+function status(id){return(cls[id]&&cls[id].status)||'pendente';}
+
+function avgScore(id){
+  var c=cls[id]; if(!c) return null;
+  var v=KEYS.map(function(k){return c[k]||0;}).filter(function(x){return x>0;});
+  return v.length?v.reduce(function(a,b){return a+b;},0)/v.length:null;
+}
+
+function categoriaFromScores(n,am,s,r,p){
+  if(!n&&!am&&!s&&!r&&!p) return{label:'Pendente',cls:'cat-n'};
+  if(n>=4&&am>=4&&s>=4&&r>=4&&p>=4) return{label:'💕 Prioridade namoro',cls:'cat-p'};
+  if(n>=4&&am>=4&&s>=4&&r>=4&&p<=3) return{label:'🛫 Marido remoto',cls:'cat-dist'};
+  if(n>=4&&am<=2&&s>=4&&r>=4&&p>=4) return{label:'❤️‍🔥 Paixão avassaladora',cls:'cat-paixao'};
+  if(n>=4&&am<=2&&s>=4&&r>=4&&p<=3) return{label:'🌪️ Paixão a distância',cls:'cat-pdist'};
+  if(n>=3&&am>=3&&s>=4&&r===3&&p>=4) return{label:'🎯 Insista',cls:'cat-insista'};
+  if(n>=3&&am>=3&&s>=4&&r<=2&&p>=4) return{label:'🚫 Nem tenta',cls:'cat-nemtenta'};
+  if(n>=4&&am>=3&&s>=4&&r<=2&&p<=2) return{label:'🫥 Crush distante sem retorno',cls:'cat-crushd'};
+  if(n<=3&&am<=3&&s>=4&&r>=4&&p>=4) return{label:'🔥 Fuck buddy',cls:'cat-fb'};
+  if(n<=2&&am<=2&&s>=4&&r===3&&p>=4) return{label:'🌶️ Quase fuck buddy',cls:'cat-qfb'};
+  if(n<=3&&am>=4&&s>=4&&r>=4&&p>=4) return{label:'🍊 Amigos com benefícios',cls:'cat-fwb'};
+  if(n<=3&&am>=4&&s>=4&&r>=4&&p<=3) return{label:'🌍 Amigos remotos com benefícios',cls:'cat-rfwb'};
+  if(n<=3&&am>=4&&s<=3&&r>=3&&p>=4) return{label:'🤝 Amigos próximos',cls:'cat-friend'};
+  if(am>=4&&r>=4&&p<=2) return{label:'🌐 Amizade remota',cls:'cat-remote'};
+  if(n>=3&&n<=4&&am>=3&&am<=4&&s>=3&&s<=4&&r>=4&&p>=4) return{label:'🌀 Quem sabe um dia',cls:'cat-qsd'};
+  if(n<=2&&am<=2&&s<=2&&r>=4&&p>=4) return{label:'😬 Vizinho evitável',cls:'cat-avoid'};
+  return{label:'👋 Passar',cls:'cat-s'};
+}
+
+function categoria(id){
+  var c=cls[id]; if(!c||c.status==='pendente') return null;
+  return categoriaFromScores(c.namoro||0,c.amizade||0,c.sexual||0,c.reciprocidade||0,c.proximidade||0);
+}
+
+function filterContacts(f){
+  switch(f){
+    case'pendentes': return contacts.filter(function(c){return status(c.id)==='pendente';});
+    case'revisados': return contacts.filter(function(c){return status(c.id)==='revisado';});
+    case'pulados':   return contacts.filter(function(c){return status(c.id)==='pulado';});
+    case'melhores':  return contacts.filter(function(c){return c.melhoresAmigos;});
+    case'seguem':    return contacts.filter(function(c){return c.segueDeVolta;});
+    default: return contacts.slice();
+  }
+}
+
+function setFilter(f){
+  curFilter=f;
+  document.querySelectorAll('.fchip').forEach(function(b){b.classList.toggle('active',b.dataset.f===f);});
+  filtered=filterContacts(f);
+  idx=0;
+  render();
+  updateCount();
+}
+
+function updateCount(){
+  var r=contacts.filter(function(c){return status(c.id)==='revisado';}).length;
+  var p=contacts.filter(function(c){return status(c.id)==='pendente';}).length;
+  var pct=r+p>0?Math.round((r/(r+p))*100):0;
+  document.getElementById('progFill').style.width=pct+'%';
+}
+
+function buildPills(key){
+  var el=document.getElementById('pills-'+key);
+  el.innerHTML='';
+  for(var i=1;i<=5;i++){
+    var b=document.createElement('button');
+    b.className='pill';
+    b.textContent=i;
+    (function(val){b.onclick=function(){setScore(key,val);};})(i);
+    el.appendChild(b);
+  }
+}
+
+function setScore(key,val){
+  scores[key]=scores[key]===val?0:val;
+  refreshPill(key);
+  refreshScores();
+  autosave();
+}
+
+function refreshPill(key){
+  var v=scores[key];
+  document.querySelectorAll('#pills-'+key+' .pill').forEach(function(p,i){p.classList.toggle('active',i+1===v);});
+}
+
+function refreshScores(){
+  var n=scores.namoro||0,a=scores.amizade||0,s=scores.sexual||0;
+  var all=KEYS.map(function(k){return scores[k]||0;}).filter(function(v){return v>0;});
+  var avg=all.length?all.reduce(function(a,b){return a+b;},0)/all.length:0;
+
+  function bar(bid,nid,v){
+    var pct=(v/5)*100;
+    var el=document.getElementById(bid);
+    el.style.width=pct+'%';
+    el.className='score-fill'+(pct>=60?' hi':pct>=30?' mid':' lo');
+    document.getElementById(nid).textContent=v?v.toFixed(2):'—';
+  }
+  bar('sbRom','snRom',n);
+  bar('sbAmiz','snAmiz',a);
+  bar('sbSex','snSex',s);
+  bar('sbGeral','snGeral',avg);
+
+  var badge=document.getElementById('catBadge');
+  var cat=categoriaFromScores(scores.namoro||0,scores.amizade||0,scores.sexual||0,scores.reciprocidade||0,scores.proximidade||0);
+  badge.textContent=cat.label;
+  badge.className='cat-badge '+cat.cls;
+}
+
+function autosave(){
+  var c=filtered[idx]; if(!c) return;
+  var allFilled=KEYS.every(function(k){return scores[k]>0;});
+  var existing=cls[c.id]||{};
+  var newStatus=allFilled?'revisado':(existing.status==='pulado'?'pulado':'pendente');
+  var reviewedAt=allFilled?(existing.reviewedAt||new Date().toISOString()):existing.reviewedAt;
+  cls[c.id]=Object.assign({},existing,scores,{notas:document.getElementById('notesArea').value,status:newStatus,reviewedAt:reviewedAt});
+  save(c.id);
+}
+
+function render(){
+  var empty=filtered.length===0;
+  document.getElementById('classifyEmpty').style.display=empty?'block':'none';
+  document.getElementById('classifyMain').style.display=empty?'none':'block';
+  if(empty) return;
+
+  var c=filtered[idx];
+  var saved=cls[c.id]||{};
+  scores={namoro:saved.namoro||0,amizade:saved.amizade||0,sexual:saved.sexual||0,reciprocidade:saved.reciprocidade||0,proximidade:saved.proximidade||0};
+
+  var av=document.getElementById('cAvatar');
+  av.textContent=initials(c.name,c.username);
+  av.style.background=color(c.id);
+  document.getElementById('cName').textContent=c.name||c.username;
+  document.getElementById('cUser').textContent='@'+c.username;
+
+  var seg=document.getElementById('mSegue');
+  seg.textContent=c.segueDeVolta?'Sim':'Não';
+  seg.className='meta-val '+(c.segueDeVolta?'pos':'neg');
+  var mel=document.getElementById('mMelh');
+  mel.textContent=c.melhoresAmigos?'Sim':'Não';
+  mel.className='meta-val '+(c.melhoresAmigos?'pos':'neg');
+  document.getElementById('mMsg').textContent=c.mensagens||'—';
+  document.getElementById('mUlt').textContent=c.ultimaInteracao||'—';
+  document.getElementById('mListas').textContent=c.listas||'—';
+  document.getElementById('mSP').textContent=c.probSP!=null?c.probSP+'%':'—';
+
+  KEYS.forEach(function(k){refreshPill(k);});
+  refreshScores();
+  document.getElementById('notesArea').value=saved.notas||'';
+  document.getElementById('prevBtn').disabled=idx===0;
+}
+
+function goNext(){
+  autosave();
+  if(idx<filtered.length-1){idx++;}
+  filtered=filterContacts(curFilter);
+  render(); updateCount();
+}
+
+function goPrev(){
+  if(idx>0){autosave();idx--;render();}
+}
+
+function openIG(){
+  var c=filtered[idx]; if(!c) return;
+  window.open(c.igUrl||'https://instagram.com/'+c.username,'_blank');
+}
+
+function showTab(tab){
+  document.getElementById('tabClassify').style.display=tab==='classify'?'block':'none';
+  document.getElementById('tabDashboard').style.display=tab==='dashboard'?'block':'none';
+  document.getElementById('tabDados').style.display=tab==='dados'?'block':'none';
+  document.getElementById('tab-classify').classList.toggle('active',tab==='classify');
+  document.getElementById('tab-dashboard').classList.toggle('active',tab==='dashboard');
+  document.getElementById('tab-dados').classList.toggle('active',tab==='dados');
+  if(tab==='dashboard') renderDash();
+  if(tab==='dados') document.getElementById('sheetsUrlInput').value=sheetsUrl||'';
+}
+
+var dashFilter='todos';
+
+function setDashFilter(f){dashFilter=f;renderDash();}
+
+function renderDash(){
+  var rev=contacts.filter(function(c){return status(c.id)==='revisado';});
+  var pend=contacts.filter(function(c){return status(c.id)==='pendente';});
+
+  document.getElementById('dgrid').innerHTML=
+    '<div class="stat-card"><div class="stat-label">Total</div><div class="stat-val blue">'+contacts.length+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Revisados</div><div class="stat-val green">'+rev.length+'</div></div>'+
+    '<div class="stat-card"><div class="stat-label">Pendentes</div><div class="stat-val yellow">'+pend.length+'</div></div>';
+
+  var usedCats=[];
+  rev.forEach(function(c){var cat=categoria(c.id);if(cat&&usedCats.indexOf(cat.label)<0)usedCats.push(cat.label);});
+
+  var chips=['todos','pendentes','revisados'].concat(usedCats);
+  document.getElementById('dashFilterRow').innerHTML=chips.map(function(f){
+    var label=f==='todos'?'Todos':f==='pendentes'?'Pendentes':f==='revisados'?'Revisados':f;
+    return '<button class="fchip'+(dashFilter===f?' active':'')+'" onclick="setDashFilter(\''+f.replace(/'/g,"\\'")+'\')">'+(label)+'</button>';
+  }).join('');
+
+  var list;
+  if(dashFilter==='todos') list=contacts.slice();
+  else if(dashFilter==='pendentes') list=pend.slice();
+  else if(dashFilter==='revisados') list=rev.slice();
+  else list=rev.filter(function(c){var cat=categoria(c.id);return cat&&cat.label===dashFilter;});
+
+  list.sort(function(a,b){return (avgScore(b.id)||0)-(avgScore(a.id)||0);});
+
+  document.getElementById('drows').innerHTML=list.length
+    ?list.map(function(c){
+        var s=avgScore(c.id);
+        var cat=categoria(c.id);
+        var st=status(c.id);
+        var sub=cat?cat.label:st==='pendente'?'Pendente':'Pulado';
+        return '<div class="list-item" onclick="jumpTo('+c.id+')">'+
+          '<div class="list-avatar" style="background:'+color(c.id)+'">'+initials(c.name,c.username)+'</div>'+
+          '<div class="list-info">'+
+            '<div class="list-name">'+(c.name||c.username)+'</div>'+
+            '<div class="list-sub">'+sub+'</div>'+
+          '</div>'+
+          '<div class="list-score">'+(s!==null?s.toFixed(2):'—')+'</div>'+
+        '</div>';
+      }).join('')
+    :'<p style="color:var(--text2);font-size:13px">Nenhum contato.</p>';
+}
+
+function jumpTo(id){
+  curFilter='todos';
+  document.querySelectorAll('.fchip').forEach(function(b){b.classList.toggle('active',b.dataset.f==='todos');});
+  filtered=filterContacts('todos');
+  idx=filtered.findIndex(function(c){return c.id===id;});
+  if(idx<0) idx=0;
+  showTab('classify');
+  render();
+}
+
+// ---- IMPORT / EXPORT ----
+function parseCSV(text){
+  var lines=[],cur='',inQ=false,row=[];
+  for(var i=0;i<text.length;i++){
+    var ch=text[i];
+    if(ch==='"'){
+      if(inQ&&text[i+1]==='"'){cur+='"';i++;}
+      else inQ=!inQ;
+    } else if(ch===','&&!inQ){row.push(cur);cur='';}
+    else if((ch==='\n'||ch==='\r')&&!inQ){
+      row.push(cur);cur='';
+      if(row.some(function(v){return v!=='';})) lines.push(row);
+      row=[];
+      if(ch==='\r'&&text[i+1]==='\n') i++;
+    } else cur+=ch;
+  }
+  row.push(cur);
+  if(row.some(function(v){return v!=='';})) lines.push(row);
+  return lines;
+}
+
+function csvToApp(rows){
+  var headers=rows[0];
+  function get(row,col){return(row[headers.indexOf(col)]||'').trim();}
+  var newContacts=[],newCls={};
+  rows.slice(1).forEach(function(row,i){
+    var id=i+1,username=get(row,'username'),rawName=get(row,'name');
+    newContacts.push({
+      id:id,username:username,name:rawName||username,
+      igUrl:get(row,'instagram_url'),
+      segueDeVolta:get(row,'follow_back')==='true',
+      melhoresAmigos:get(row,'close_friends')==='true',
+      listas:get(row,'custom_lists'),
+      mensagens:parseInt(get(row,'total_messages'))||0,
+      ultimaInteracao:get(row,'last_interaction')||'—',
+      probSP:parseInt(get(row,'probability_sp'))||0,
+    });
+    var rs=get(row,'status');
+    var nc={
+      namoro:parseInt(get(row,'rating_potencial_namoro'))||0,
+      amizade:parseInt(get(row,'rating_potencial_amizade'))||0,
+      sexual:parseInt(get(row,'rating_interesse_sexual'))||0,
+      reciprocidade:parseInt(get(row,'rating_reciprocidade'))||0,
+      proximidade:parseInt(get(row,'rating_proximidade'))||0,
+      notas:get(row,'notes'),
+      reviewedAt:get(row,'reviewed_at')||'',
+    };
+    var allFilled=KEYS.every(function(k){return nc[k]>0;});
+    nc.status=allFilled?'revisado':rs==='skipped'?'pulado':'pendente';
+    if(allFilled&&!nc.reviewedAt) nc.reviewedAt=new Date().toISOString();
+    newCls[id]=nc;
+  });
+  return{contacts:newContacts,cls:newCls};
+}
+
+function triggerUpload(){
+  if('showOpenFilePicker' in window){
+    window.showOpenFilePicker({types:[{description:'CSV',accept:{'text/csv':['.csv'],'text/plain':['.csv']}}],multiple:false})
+      .then(function(handles){
+        fileHandle=handles[0];
+        return fileHandle.requestPermission({mode:'readwrite'}).then(function(perm){
+          if(perm!=='granted'){toast('❌ Permissão negada');fileHandle=null;return;}
+          return fileHandle.getFile().then(function(f){return f.text();}).then(function(text){
+            processText(text,fileHandle.name);
+          });
+        });
+      }).catch(function(e){if(e.name!=='AbortError') toast('❌ '+e.message);});
+  } else {
+    document.getElementById('fileInput').click();
+  }
+}
+
+function handleUpload(e){
+  var f=e.target.files[0]; if(!f) return;
+  var r=new FileReader();
+  r.onload=function(ev){processText(ev.target.result,f.name);};
+  r.readAsText(f,'UTF-8');
+  e.target.value='';
+}
+
+function processText(text,filename){
+  text=text.replace(/^﻿/,'');
+  try{
+    if(filename.toLowerCase().endsWith('.csv')){
+      var rows=parseCSV(text);
+      if(rows.length<2){toast('❌ CSV vazio');return;}
+      if(!rows[0].includes('username')){toast('❌ Coluna "username" não encontrada');return;}
+      var result=csvToApp(rows);
+      contacts=result.contacts; cls=result.cls;
+      store.set('igc_c',contacts); store.set('igc_cl',cls);
+      setFilter(curFilter); updateCount();
+      toast('✓ '+contacts.length+' contatos importados');
+    } else {
+      var d=JSON.parse(text);
+      if(Array.isArray(d)){contacts=d;store.set('igc_c',d);setFilter(curFilter);updateCount();toast('✓ '+d.length+' contatos importados');}
+      else toast('❌ Formato inválido');
+    }
+  }catch(err){toast('❌ Erro: '+err.message);}
+}
+
+function csvEscape(v){
+  var s=String(v==null?'':v);
+  return(s.includes(',')||s.includes('"')||s.includes('\n'))?'"'+s.replace(/"/g,'""')+'"':s;
+}
+
+function contactsToCSV(){
+  var header='username,instagram_url,name,follow_back,close_friends,custom_lists,total_messages,last_interaction,probability_sp,status,rating_potencial_namoro,rating_potencial_amizade,rating_interesse_sexual,rating_reciprocidade,rating_proximidade,notes,reviewed_at,score_geral,categoria_manual';
+  var rows=contacts.map(function(c){
+    var cl=cls[c.id]||{};
+    var st=cl.status==='revisado'?'reviewed':cl.status==='pulado'?'skipped':'not_reviewed';
+    var avg=avgScore(c.id)||0;
+    var cat=categoria(c.id);
+    return[c.username,c.igUrl||'',c.name||c.username,c.segueDeVolta,c.melhoresAmigos,
+      c.listas||'',c.mensagens||0,c.ultimaInteracao||'',c.probSP||0,
+      st,cl.namoro||0,cl.amizade||0,cl.sexual||0,cl.reciprocidade||0,cl.proximidade||0,
+      cl.notas||'',cl.reviewedAt||'',avg?avg.toFixed(2):'0',cat?cat.label:''
+    ].map(csvEscape).join(',');
+  });
+  return[header].concat(rows).join('\n');
+}
+
+async function saveToFile(){
+  if(!fileHandle) return;
+  try{
+    var csv=contactsToCSV();
+    var writable=await fileHandle.createWritable();
+    await writable.write(csv); await writable.close();
+  }catch(e){console.error('File save:',e);}
+}
+
+function saveSheetsUrl(){
+  var url=document.getElementById('sheetsUrlInput').value.trim();
+  sheetsUrl=url||null;
+  store.set('igc_sheetsUrl',sheetsUrl);
+  toast(sheetsUrl?'✓ URL salva':'URL removida');
+}
+
+async function loadFromSheets(){
+  if(!sheetsUrl){toast('⚠️ URL do Sheets não configurada');return;}
+  toast('⏳ Sincronizando...');
+  try{
+    var res=await fetch(sheetsUrl);
+    var json=await res.json();
+    if(!json.ok){toast('❌ Erro: '+json.error);return;}
+    var rows=json.data.map(function(row){
+      return row.map(function(v){return v===null||v===undefined?'':String(v);});
+    });
+    if(!rows.length||!rows[0].includes('username')){toast('❌ Planilha sem cabeçalho válido');return;}
+    var parsed=csvToApp(rows);
+    contacts=parsed.contacts;
+    cls=parsed.cls;
+    store.set('igc_c',contacts);
+    store.set('igc_cl',cls);
+    filtered=filterContacts(curFilter);
+    if(idx>=filtered.length) idx=0;
+    render(); updateCount();
+    toast('✓ '+contacts.length+' contatos sincronizados');
+  }catch(e){toast('❌ '+e.message);}
+}
+
+async function saveToSheets(contactId){
+  if(!sheetsUrl) return;
+  var c=contacts.find(function(x){return x.id===contactId;});
+  if(!c) return;
+  var cl=cls[contactId]||{};
+  var avg=avgScore(contactId)||0;
+  var cat=categoria(contactId);
+  try{
+    await fetch(sheetsUrl,{method:'POST',body:JSON.stringify({
+      username:c.username,status:cl.status||'pendente',
+      namoro:cl.namoro||0,amizade:cl.amizade||0,sexual:cl.sexual||0,
+      reciprocidade:cl.reciprocidade||0,proximidade:cl.proximidade||0,
+      notas:cl.notas||'',reviewedAt:cl.reviewedAt||'',
+      scoreGeral:avg.toFixed(2),categoria:cat?cat.label:''
+    })});
+  }catch(e){console.error('Sheets:',e);}
+}
+
+function doExport(){
+  var csv=contactsToCSV();
+  var a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download='instarate-export.csv';
+  a.click();
+  toast('✓ CSV exportado');
+}
+
+function toast(msg){
+  var t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show');},2500);
+}
+
+document.getElementById('notesArea').addEventListener('input',autosave);
+
+// ---- INIT ----
+filtered=filterContacts('todos');
+render();
+updateCount();
+if(sheetsUrl) loadFromSheets();
+</script>
+</body>
+</html>
