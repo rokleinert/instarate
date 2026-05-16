@@ -43,14 +43,42 @@ body{
 .sticky-top{position:sticky;top:0;z-index:50;background:var(--bg);}
 
 /* FILTER ROW */
+.filter-bar{display:flex;align-items:center;}
 .filter-row{
   display:flex;
   gap:6px;
-  padding:10px 16px;
+  padding:10px 0 10px 16px;
   overflow-x:auto;
   scrollbar-width:none;
+  flex:1;
 }
 .filter-row::-webkit-scrollbar{display:none;}
+.sec-filter-btn{
+  flex-shrink:0;width:36px;height:30px;margin:0 12px;padding:0;
+  display:flex;align-items:center;justify-content:center;
+  background:transparent;border:1px solid var(--border);border-radius:8px;
+  color:var(--text2);cursor:pointer;transition:border-color .15s,color .15s;
+}
+.sec-filter-btn svg{width:15px;height:15px;}
+.sec-filter-btn.active,.sec-filter-btn.on{border-color:var(--accent);color:var(--accent);}
+.sec-dropdown{padding:4px 16px 10px;border-bottom:1px solid var(--border);}
+.sec-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:11px 4px;cursor:pointer;gap:16px;
+  font-size:13px;color:var(--text);border-bottom:1px solid var(--border);
+}
+.sec-row:last-child{border-bottom:none;}
+.toggle-pill{
+  width:40px;height:22px;border-radius:11px;background:var(--surface2);border:1px solid var(--border);
+  position:relative;transition:background .2s,border-color .2s;flex-shrink:0;
+}
+.toggle-pill.on{background:var(--accent);border-color:var(--accent);}
+.toggle-pill::after{
+  content:'';position:absolute;width:16px;height:16px;
+  border-radius:50%;background:var(--text2);top:2px;left:2px;
+  transition:left .2s,background .2s;
+}
+.toggle-pill.on::after{left:20px;background:#fff;}
 .fchip{
   padding:5px 14px;
   border-radius:20px;
@@ -69,6 +97,15 @@ body{
   flex:1;
   overflow-y:auto;
   padding:14px 16px 100px;
+  overscroll-behavior-y:contain;
+}
+
+/* PULL TO REFRESH */
+.ptr-hint{
+  text-align:center;height:0;overflow:hidden;
+  color:var(--text2);font-size:12px;
+  display:flex;align-items:center;justify-content:center;
+  opacity:0;transition:height .1s,opacity .1s;
 }
 
 /* PROGRESS BAR */
@@ -116,17 +153,31 @@ body{
 .pill:hover{border-color:var(--accent);color:var(--accent);}
 .pill.active{background:var(--accent);border-color:var(--accent);color:#fff;}
 
-/* SCORES */
-.score-row{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
-.score-label{font-size:12px;color:var(--text2);width:70px;flex-shrink:0;}
-.score-track{flex:1;height:5px;background:var(--surface2);border-radius:3px;overflow:hidden;}
-.score-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .35s;}
-.score-fill.hi{background:var(--green);}
-.score-fill.mid{background:var(--yellow);}
-.score-fill.lo{background:var(--red);}
-.score-num{font-size:12px;font-weight:600;width:30px;text-align:right;}
+/* SCORE COMPACT */
+.score-compact{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:14px 16px;}
+.score-big-num{font-size:32px;font-weight:700;color:var(--accent);min-width:52px;}
+.cat-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;}
+.score-compact .cat-badge{margin:0;font-size:14px;padding:7px 16px;}
 
-.cat-badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;margin-bottom:16px;}
+/* LOADING OVERLAY */
+.loading-overlay{
+  display:none;position:fixed;inset:0;
+  background:rgba(13,17,23,.75);z-index:300;
+  flex-direction:column;align-items:center;justify-content:center;gap:14px;
+}
+.loading-overlay.show{display:flex;}
+.loading-spinner{width:44px;height:44px;animation:spin .8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+/* SPLASH */
+.splash{
+  position:fixed;inset:0;background:var(--bg);z-index:600;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;
+  transition:opacity .5s ease;
+}
+.splash.hiding{opacity:0;pointer-events:none;}
+.splash-title{font-size:28px;font-weight:700;letter-spacing:-.5px;}
+.splash-sub{font-size:13px;color:var(--text2);}
 .cat-p{background:rgba(247,120,186,.15);color:var(--pink);}
 .cat-dist{background:rgba(163,113,247,.15);color:var(--purple);}
 .cat-insista{background:rgba(210,153,34,.2);color:var(--yellow);}
@@ -171,7 +222,8 @@ body{
 
 /* DASHBOARD */
 .stats-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px;cursor:pointer;transition:border-color .15s;}
+.stat-card.stat-active{border-color:var(--accent);}
 .stat-label{font-size:11px;color:var(--text2);margin-bottom:6px;}
 .stat-val{font-size:30px;font-weight:700;}
 .stat-val.blue{color:var(--accent);}
@@ -210,7 +262,8 @@ body{
   color:var(--text2);font-size:11px;font-family:inherit;
 }
 .tab-btn.active{color:var(--accent);}
-.tab-icon{font-size:22px;line-height:1;}
+.tab-icon{width:24px;height:24px;display:block;}
+.tab-icon svg{width:24px;height:24px;display:block;}
 
 /* TOAST */
 .toast{
@@ -236,14 +289,29 @@ body{
   <!-- CLASSIFY TAB -->
   <div id="tabClassify">
     <div class="sticky-top">
-      <div class="filter-row">
-        <button class="fchip active" data-f="todos" onclick="setFilter('todos')">Todos</button>
-        <button class="fchip" data-f="pendentes" onclick="setFilter('pendentes')">Pendentes</button>
-        <button class="fchip" data-f="revisados" onclick="setFilter('revisados')">Revisados</button>
-        <button class="fchip" data-f="pulados" onclick="setFilter('pulados')">Pulados</button>
+      <div class="filter-bar">
+        <div class="filter-row">
+          <button class="fchip" data-f="todos" onclick="setFilter('todos')">Todos</button>
+          <button class="fchip active" data-f="pendentes" onclick="setFilter('pendentes')">Pendentes</button>
+          <button class="fchip" data-f="revisados" onclick="setFilter('revisados')">Revisados</button>
+        </div>
+        <button class="sec-filter-btn" id="secFilterBtn" onclick="toggleSecDropdown()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+        </button>
+      </div>
+      <div id="secDropdown" style="display:none" class="sec-dropdown">
+        <div class="sec-row" onclick="toggleSecondary('segue')">
+          <span>Te segue</span>
+          <div class="toggle-pill on" id="tgl-segue"></div>
+        </div>
+        <div class="sec-row" onclick="toggleSecondary('melhores')">
+          <span>Melhores amigos</span>
+          <div class="toggle-pill on" id="tgl-melhores"></div>
+        </div>
       </div>
       <div class="prog-bar"><div class="prog-fill" id="progFill" style="width:0%"></div></div>
     </div>
+    <div id="ptrHint" class="ptr-hint">↓ Puxe para atualizar</div>
     <div class="tab-content">
 
       <div id="classifyEmpty" class="empty" style="display:none">
@@ -290,10 +358,9 @@ body{
           </div>
         </div>
 
-        <!-- Scores + Notes -->
-        <div class="card card-inner">
-          <div class="card-label">Scores</div>
-          <div class="score-row"><span class="score-label">Geral</span><div class="score-track"><div class="score-fill" id="sbGeral" style="width:0%"></div></div><span class="score-num" id="snGeral">—</span></div>
+        <!-- Score + Tag -->
+        <div class="card score-compact">
+          <span class="score-big-num" id="snGeral">—</span>
           <div id="catBadge" class="cat-badge cat-n">Pendente</div>
         </div>
 
@@ -309,10 +376,10 @@ body{
   <!-- DASHBOARD TAB -->
   <div id="tabDashboard" style="display:none">
     <div class="sticky-top">
+      <div class="stats-grid" id="dgrid" style="padding:12px 16px 6px;margin:0;"></div>
       <div class="filter-row" id="dashFilterRow"></div>
     </div>
     <div class="tab-content">
-      <div class="stats-grid" id="dgrid"></div>
       <div class="card card-inner">
         <div id="drows"><p style="color:var(--text2);font-size:13px">Nenhum contato ainda.</p></div>
       </div>
@@ -338,18 +405,39 @@ body{
   <!-- TAB BAR -->
   <nav class="tab-bar">
     <button class="tab-btn active" id="tab-classify" onclick="showTab('classify')">
-      <span class="tab-icon">⭐</span>Classificar
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>Classificar
     </button>
     <button class="tab-btn" id="tab-dashboard" onclick="showTab('dashboard')">
-      <span class="tab-icon">📊</span>Dashboard
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>Dashboard
     </button>
     <button class="tab-btn" id="tab-dados" onclick="showTab('dados')">
-      <span class="tab-icon">📁</span>Dados
+      <span class="tab-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></span>Dados
     </button>
   </nav>
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="loading-overlay" id="loadingOverlay">
+  <svg class="loading-spinner" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="12" cy="12" r="10" stroke="var(--border)" stroke-width="2.5"/>
+    <path d="M12 2a10 10 0 0 1 10 10" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round"/>
+  </svg>
+  <div style="color:var(--text2);font-size:14px">Carregando...</div>
+</div>
+<div id="splash" class="splash">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="96" height="96">
+    <defs>
+      <linearGradient id="splashG" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#4a9eff"/>
+        <stop offset="100%" stop-color="#a371f7"/>
+      </linearGradient>
+    </defs>
+    <rect width="64" height="64" rx="14" fill="url(#splashG)"/>
+    <polygon transform="translate(14,14) scale(1.5)" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="white"/>
+  </svg>
+  <div class="splash-title">InstaRate</div>
+  <div class="splash-sub">Classifique suas conexões</div>
+</div>
 
 <script>
 const COLORS=['#4a9eff','#a371f7','#3fb950','#f778ba','#d29922','#f85149','#58a6ff','#79c0ff','#56d364','#ffa657'];
@@ -371,7 +459,9 @@ var store={
 
 var contacts=store.get('igc_c',null)||SAMPLE;
 var cls=store.get('igc_cl',{});
-var curFilter='todos';
+var curFilter='pendentes';
+var filterSegue=true;
+var filterMelhores=true;
 var filtered=[];
 var idx=0;
 var scores={namoro:0,amizade:0,sexual:0,reciprocidade:0,proximidade:0};
@@ -425,24 +515,58 @@ function categoria(id){
 }
 
 function filterContacts(f){
+  var list;
   switch(f){
-    case'pendentes': return contacts.filter(function(c){return status(c.id)==='pendente';});
-    case'revisados': return contacts.filter(function(c){return status(c.id)==='revisado';});
-    case'pulados':   return contacts.filter(function(c){return status(c.id)==='pulado';});
-    case'melhores':  return contacts.filter(function(c){return c.melhoresAmigos;});
-    case'seguem':    return contacts.filter(function(c){return c.segueDeVolta;});
-    default: return contacts.slice();
+    case'pendentes': list=contacts.filter(function(c){return status(c.id)==='pendente';}); break;
+    case'revisados': list=contacts.filter(function(c){return status(c.id)==='revisado';}); break;
+    default: list=contacts.slice();
   }
+  list=list.filter(function(c){return c.segueDeVolta===filterSegue;});
+  list=list.filter(function(c){return c.melhoresAmigos===filterMelhores;});
+  return list;
 }
 
 function setFilter(f){
   curFilter=f;
-  document.querySelectorAll('.fchip').forEach(function(b){b.classList.toggle('active',b.dataset.f===f);});
+  document.querySelectorAll('.fchip:not([data-sec])').forEach(function(b){b.classList.toggle('active',b.dataset.f===f);});
   filtered=filterContacts(f);
   idx=0;
   render();
   updateCount();
 }
+
+function toggleSecondary(key){
+  if(key==='segue') filterSegue=!filterSegue;
+  else filterMelhores=!filterMelhores;
+  var val=key==='segue'?filterSegue:filterMelhores;
+  document.getElementById('tgl-'+key).classList.toggle('on',val);
+  updateSecFilterBtn();
+  filtered=filterContacts(curFilter);
+  idx=0;
+  render();
+  updateCount();
+}
+
+function updateSecFilterBtn(){
+  var nonDefault=!filterSegue||!filterMelhores;
+  document.getElementById('secFilterBtn').classList.toggle('on',nonDefault);
+}
+
+function toggleSecDropdown(){
+  var d=document.getElementById('secDropdown');
+  var opening=d.style.display==='none';
+  d.style.display=opening?'block':'none';
+  document.getElementById('secFilterBtn').classList.toggle('active',opening);
+}
+
+document.addEventListener('click',function(e){
+  var btn=document.getElementById('secFilterBtn');
+  var dd=document.getElementById('secDropdown');
+  if(dd.style.display!=='none'&&!btn.contains(e.target)&&!dd.contains(e.target)){
+    dd.style.display='none';
+    btn.classList.remove('active');
+  }
+});
 
 function updateCount(){
   var r=contacts.filter(function(c){return status(c.id)==='revisado';}).length;
@@ -478,23 +602,23 @@ function refreshPill(key){
 function refreshScores(){
   var all=KEYS.map(function(k){return scores[k]||0;}).filter(function(v){return v>0;});
   var avg=all.length?all.reduce(function(a,b){return a+b;},0)/all.length:0;
-  var pct=(avg/5)*100;
-  var el=document.getElementById('sbGeral');
-  el.style.width=pct+'%';
-  el.className='score-fill'+(pct>=60?' hi':pct>=30?' mid':' lo');
   document.getElementById('snGeral').textContent=avg?avg.toFixed(2):'—';
 
   var badge=document.getElementById('catBadge');
-  var cat=categoriaFromScores(scores.namoro||0,scores.amizade||0,scores.sexual||0,scores.reciprocidade||0,scores.proximidade||0);
-  badge.textContent=cat.label;
-  badge.className='cat-badge '+cat.cls;
+  var allFilled=KEYS.every(function(k){return scores[k]>0;});
+  if(allFilled){
+    var cat=categoriaFromScores(scores.namoro||0,scores.amizade||0,scores.sexual||0,scores.reciprocidade||0,scores.proximidade||0);
+    badge.textContent=cat.label;badge.className='cat-badge '+cat.cls;
+  }else{
+    badge.textContent='Pendente';badge.className='cat-badge cat-n';
+  }
 }
 
 function autosave(){
   var c=filtered[idx]; if(!c) return;
   var allFilled=KEYS.every(function(k){return scores[k]>0;});
   var existing=cls[c.id]||{};
-  var newStatus=allFilled?'revisado':(existing.status==='pulado'?'pulado':'pendente');
+  var newStatus=allFilled?'revisado':'pendente';
   var reviewedAt=allFilled?(existing.reviewedAt||new Date().toISOString()):existing.reviewedAt;
   cls[c.id]=Object.assign({},existing,scores,{status:newStatus,reviewedAt:reviewedAt});
   save(c.id);
@@ -530,6 +654,7 @@ function goNext(){
   if(idx<filtered.length-1){idx++;}
   filtered=filterContacts(curFilter);
   render(); updateCount();
+  document.querySelector('#tabClassify .tab-content').scrollTop=0;
 }
 
 function goPrev(){
@@ -538,7 +663,10 @@ function goPrev(){
 
 function openIG(){
   var c=filtered[idx]; if(!c) return;
-  window.location.href=c.igUrl||'https://instagram.com/'+c.username;
+  var url=c.igUrl||'https://instagram.com/'+c.username;
+  var isMobile=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+  if(isMobile) window.location.href=url;
+  else window.open(url,'_blank');
 }
 
 function showTab(tab){
@@ -552,33 +680,39 @@ function showTab(tab){
   if(tab==='dados') document.getElementById('sheetsUrlInput').value=sheetsUrl||'';
 }
 
-var dashFilter='todos';
+var dashStatFilter='todos';
+var dashCatFilter=null;
 
-function setDashFilter(f){dashFilter=f;renderDash();}
+function setDashFilter(f){dashStatFilter=f;dashCatFilter=null;renderDash();}
+function setDashCatFilter(f){
+  dashCatFilter=dashCatFilter===f?null:f;
+  if(dashCatFilter) dashStatFilter='revisados';
+  renderDash();
+}
 
 function renderDash(){
   var rev=contacts.filter(function(c){return status(c.id)==='revisado';});
   var pend=contacts.filter(function(c){return status(c.id)==='pendente';});
 
   document.getElementById('dgrid').innerHTML=
-    '<div class="stat-card"><div class="stat-label">Total</div><div class="stat-val blue">'+contacts.length+'</div></div>'+
-    '<div class="stat-card"><div class="stat-label">Revisados</div><div class="stat-val green">'+rev.length+'</div></div>'+
-    '<div class="stat-card"><div class="stat-label">Pendentes</div><div class="stat-val yellow">'+pend.length+'</div></div>';
+    '<div class="stat-card'+(dashStatFilter==='todos'&&!dashCatFilter?' stat-active':'')+'" onclick="setDashFilter(\'todos\')"><div class="stat-label">Total</div><div class="stat-val blue">'+contacts.length+'</div></div>'+
+    '<div class="stat-card'+((dashStatFilter==='revisados')?' stat-active':'')+'" onclick="setDashFilter(\'revisados\')"><div class="stat-label">Revisados</div><div class="stat-val green">'+rev.length+'</div></div>'+
+    '<div class="stat-card'+(dashStatFilter==='pendentes'?' stat-active':'')+'" onclick="setDashFilter(\'pendentes\')"><div class="stat-label">Pendentes</div><div class="stat-val yellow">'+pend.length+'</div></div>';
 
   var usedCats=[];
   rev.forEach(function(c){var cat=categoria(c.id);if(cat&&usedCats.indexOf(cat.label)<0)usedCats.push(cat.label);});
 
-  var chips=['todos','pendentes','revisados'].concat(usedCats);
-  document.getElementById('dashFilterRow').innerHTML=chips.map(function(f){
-    var label=f==='todos'?'Todos':f==='pendentes'?'Pendentes':f==='revisados'?'Revisados':f;
-    return '<button class="fchip'+(dashFilter===f?' active':'')+'" onclick="setDashFilter(\''+f.replace(/'/g,"\\'")+'\')">'+(label)+'</button>';
+  document.getElementById('dashFilterRow').innerHTML=usedCats.map(function(f){
+    return '<button class="fchip'+(dashCatFilter===f?' active':'')+'" onclick="setDashCatFilter(\''+f.replace(/'/g,"\\'")+'\')">'+f+'</button>';
   }).join('');
 
-  var list;
-  if(dashFilter==='todos') list=contacts.slice();
-  else if(dashFilter==='pendentes') list=pend.slice();
-  else if(dashFilter==='revisados') list=rev.slice();
-  else list=rev.filter(function(c){var cat=categoria(c.id);return cat&&cat.label===dashFilter;});
+  var baseList;
+  if(dashStatFilter==='revisados') baseList=rev.slice();
+  else if(dashStatFilter==='pendentes') baseList=pend.slice();
+  else baseList=contacts.slice();
+  var list=dashCatFilter
+    ?baseList.filter(function(c){var cat=categoria(c.id);return cat&&cat.label===dashCatFilter;})
+    :baseList;
 
   list.sort(function(a,b){return (avgScore(b.id)||0)-(avgScore(a.id)||0);});
 
@@ -658,7 +792,7 @@ function csvToApp(rows){
       reviewedAt:get(row,'reviewed_at')||'',
     };
     var allFilled=KEYS.every(function(k){return nc[k]>0;});
-    nc.status=allFilled?'revisado':rs==='skipped'?'pulado':'pendente';
+    nc.status=allFilled?'revisado':'pendente';
     if(allFilled&&!nc.reviewedAt) nc.reviewedAt=new Date().toISOString();
     newCls[id]=nc;
   });
@@ -719,7 +853,7 @@ function contactsToCSV(){
   var header='username,instagram_url,name,follow_back,close_friends,custom_lists,total_messages,last_interaction,probability_sp,status,rating_potencial_namoro,rating_potencial_amizade,rating_interesse_sexual,rating_reciprocidade,rating_proximidade,notes,reviewed_at,score_geral,categoria_manual';
   var rows=contacts.map(function(c){
     var cl=cls[c.id]||{};
-    var st=cl.status==='revisado'?'reviewed':cl.status==='pulado'?'skipped':'not_reviewed';
+    var st=cl.status==='revisado'?'reviewed':'not_reviewed';
     var avg=avgScore(c.id)||0;
     var cat=categoria(c.id);
     return[c.username,c.igUrl||'',c.name||c.username,c.segueDeVolta,c.melhoresAmigos,
@@ -749,7 +883,7 @@ function saveSheetsUrl(){
 
 async function loadFromSheets(){
   if(!sheetsUrl){toast('⚠️ URL do Sheets não configurada');return;}
-  toast('⏳ Sincronizando...');
+  document.getElementById('loadingOverlay').classList.add('show');
   try{
     var res=await fetch(sheetsUrl);
     var json=await res.json();
@@ -768,6 +902,7 @@ async function loadFromSheets(){
     render(); updateCount();
     toast('✓ '+contacts.length+' contatos sincronizados');
   }catch(e){toast('❌ '+e.message);}
+  finally{document.getElementById('loadingOverlay').classList.remove('show');hideSplash();}
 }
 
 async function saveToSheets(contactId){
@@ -803,11 +938,62 @@ function toast(msg){
   setTimeout(function(){t.classList.remove('show');},2500);
 }
 
+// ---- PULL TO REFRESH ----
+(function(){
+  var THRESHOLD=65;
+  var startY=0,dy=0,pulling=false;
+  var el=document.querySelector('#tabClassify .tab-content');
+  var hint=document.getElementById('ptrHint');
+
+  el.addEventListener('touchstart',function(e){
+    if(el.scrollTop===0){startY=e.touches[0].clientY;pulling=true;dy=0;}
+  },{passive:true});
+
+  el.addEventListener('touchmove',function(e){
+    if(!pulling) return;
+    dy=e.touches[0].clientY-startY;
+    if(dy>0){
+      e.preventDefault();
+      var prog=Math.min(dy/THRESHOLD,1);
+      hint.style.height=(prog*40)+'px';
+      hint.style.opacity=String(prog);
+      hint.textContent=dy>=THRESHOLD?'↑ Solte para atualizar':'↓ Puxe para atualizar';
+    } else {
+      pulling=false;
+    }
+  },{passive:false});
+
+  el.addEventListener('touchend',function(){
+    if(pulling&&dy>=THRESHOLD) loadFromSheets();
+    hint.style.height='0';
+    hint.style.opacity='0';
+    pulling=false;dy=0;
+  },{passive:true});
+})();
+
+// ---- SPLASH + FAVICON ----
+var _splashStart=Date.now();
+function hideSplash(){
+  var delay=Math.max(0,1400-(Date.now()-_splashStart));
+  setTimeout(function(){
+    var s=document.getElementById('splash');
+    s.classList.add('hiding');
+    setTimeout(function(){s.style.display='none';},500);
+  },delay);
+}
+(function(){
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#4a9eff"/><stop offset="100%" stop-color="#a371f7"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#g)"/><polygon transform="translate(14,14) scale(1.5)" points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="white"/></svg>';
+  var l=document.createElement('link');l.rel='icon';l.type='image/svg+xml';
+  l.href='data:image/svg+xml;base64,'+btoa(svg);
+  document.head.appendChild(l);
+})();
+
 // ---- INIT ----
-filtered=filterContacts('todos');
+filtered=filterContacts('pendentes');
 render();
 updateCount();
 if(sheetsUrl) loadFromSheets();
+else hideSplash();
 </script>
 </body>
 </html>
